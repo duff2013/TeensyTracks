@@ -79,7 +79,7 @@ public:
      *  Start IntervalTimer
      */
     virtual void begin( void ) {
-        pinMode(LED_BUILTIN, OUTPUT);
+        //pinMode(LED_BUILTIN, OUTPUT);
         innerBeatTime = 0;
         MasterTimer.begin( BeatTrack, beatTime / 32.0 );
     }
