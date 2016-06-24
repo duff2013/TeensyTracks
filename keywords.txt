@@ -1,0 +1,34 @@
+#######################################
+# Syntax Coloring Map TeensyTracks.h
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+TeensyTracks	KEYWORD1
+MasterTrack	KEYWORD1
+Track	KEYWORD1
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+tempo	KEYWORD2
+onBeat	KEYWORD2
+getBeat	KEYWORD2
+clearBeat	KEYWORD2
+onBar	KEYWORD2
+getBar	KEYWORD2
+clearBar	KEYWORD2
+TRACK_DELAY	KEYWORD2
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+WHOLE_BAR	LITERAL1
+HALF_BAR	LITERAL1
+QUARTER_BAR	LITERAL1
+EIGHTH_BAR	LITERAL1
+SIXTEENTH_BAR	LITERAL1
+THIRTY_SECOND_BAR	LITERAL1
