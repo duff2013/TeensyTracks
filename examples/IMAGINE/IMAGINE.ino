@@ -1,7 +1,7 @@
 /*
  * This example plays the Song Imagine by John Lennon using
  * the Audio library's AudioSynthKarplusStrong for the guitar
- * and bass and WAV drum samples and using prop shield.
+ * and bass and WAV drum samples using the prop shield.
  *
  * It expands on the "Guitar" and "SamplePlayer" examples
  * from the Audio library examples. TeensyTracks keeps
@@ -14,7 +14,7 @@
  *
  * Since this library uses a scheduling library for the Track
  * Threads do not use any dynamic memory operations. Things like
- * String, prinf and such should not be used.
+ * String, prinf and such should not be used sorry.
  */
 #include <TeensyTracks.h>
 #include <Audio.h>
