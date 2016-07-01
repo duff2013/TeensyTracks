@@ -71,15 +71,9 @@ const float Gminor[6]   = {NOTE_G2, NOTE_D3, NOTE_G3, NOTE_As3,NOTE_D3, NOTE_G4}
 const float Aminor[6]   = {      0, NOTE_A2, NOTE_E3, NOTE_A3, NOTE_C4, NOTE_E4};  // A - C - E
 const float Bminor[6]   = {      0, NOTE_B2, NOTE_Fs3,NOTE_B3, NOTE_D4, NOTE_Fs4}; // B - D - F#
 
-const float Cmajor7[6]  = {      0, NOTE_C3, NOTE_E2, NOTE_Bb3, NOTE_C4, NOTE_E4};  // C,E,G,B♭
-const float Fmajor7[6]   = {     0, NOTE_C3, NOTE_F3, NOTE_A3,  NOTE_C4, NOTE_E4};  // C F A C E
+const float Cmajor7[6]  = {      0, NOTE_C3, NOTE_E2, NOTE_G3, NOTE_Bb3, NOTE_E4};  // C - E - G - B♭
+const float Fmajor7[6]  = {      0, NOTE_C3, NOTE_F3, NOTE_A3, NOTE_C4,  NOTE_E4};  // C - F - A - E
 
-const float A_7[6]      = {      0, NOTE_A2, NOTE_E3, NOTE_G3, NOTE_Cs4,NOTE_E4};  // A - C# - E
-const float D_7[6]      = {      0, NOTE_A2, NOTE_D3, NOTE_A3, NOTE_C4, NOTE_Fs4}; // D - F# - A
-const float E_7[6]      = {NOTE_E2, NOTE_B2, NOTE_E3, NOTE_Gs3,NOTE_D4, NOTE_E4};  // E - G# - B
-
-//                   E2, F2, F2#, G2, G2#, A2, A2#, B2
-// C3, C3#, D3, D3#, E3, F3, F3#, G3, G3#, A3, A3#, B3
-// C4, C4#, D4, D4#, E4, F4, F4#, G4, G4#, A4, A4#, B4
-
-
+const float A_7[6]      = {      0, NOTE_A2, NOTE_E3, NOTE_G3, NOTE_Cs4,NOTE_E4};  // A - E - G - C#
+const float D_7[6]      = {      0,       0, NOTE_D3, NOTE_A3, NOTE_C4, NOTE_Fs4}; // D - A - C - F#
+const float E_7[6]      = {NOTE_E2, NOTE_B2, NOTE_E3, NOTE_Gs3,NOTE_D4, NOTE_E4};  // E - B - G# - D

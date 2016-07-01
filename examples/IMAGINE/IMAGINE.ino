@@ -1,6 +1,9 @@
 /*
- * This example plays the Song Imagine by John Lennon. 
- * It expands on the "Guitar" and "SamplePlayer" examples 
+ * This example plays the Song Imagine by John Lennon using
+ * the Audio library's AudioSynthKarplusStrong for the guitar
+ * and bass and WAV drum samples and using prop shield.
+ *
+ * It expands on the "Guitar" and "SamplePlayer" examples
  * from the Audio library examples. TeensyTracks keeps
  * everything in time so you can play songs from a collection
  * of instruments you choose. Since each of the Track threads
@@ -8,6 +11,10 @@
  * pause, restart or speed or slow down the song. You can also
  * pause and resume individual tracks. This example shows you
  * how to do that. Look at the loop function for this.
+ *
+ * Since this library uses a scheduling library for the Track
+ * Threads do not use any dynamic memory operations. Things like
+ * String, prinf and such should not be used.
  */
 #include <TeensyTracks.h>
 #include <Audio.h>
@@ -19,6 +26,10 @@
 #include "drums.h"
 #include "chords.h"
 // Must declare static Track Threads here to be visible to the Track class.
+// See other tabs for the Track Thread code. Each one of these Tracks runs
+// independent of each other by using the scheduling library Zilch which
+// provides "context switch" to each Track Thread. These Tracks get there
+// timing from MasterTrack Class.
 static void hihat(void *arg);
 static void kick(void *arg);
 static void snare(void *arg);
@@ -29,10 +40,12 @@ static void bass(void *arg);
 #define NUM_MEASURES 20
 // The tempo of the song in Beats Per Minute (BPM)
 uint8_t myTempo = 85;
-// Master Track class needs the tempo, number of measures or (bars), and Time Signatures this one uses 4/4
+// Master Track class needs the tempo, key (for reference only now) number of measures or (bars),
+// and Time Signatures this one uses 4/4
 MasterTrack Imagine(myTempo, C, NUM_MEASURES, 4, 4);
-// Track threads, first is the static void function and the amount of stack space it needs. If you run into problems 
-// with the Tracks not playing weird things happening it could be the stack space needs to increase.
+// Track Threads, first argument is the static void function and the amount of stack space it
+// needs. If you run into problems with the Tracks not playing weird things happening it could
+// be the stack space needs to increase.
 Track Drum1(hihat, 1000);
 Track Drum2(kick, 1000);
 Track Drum3(snare, 1000);
@@ -44,10 +57,11 @@ Track Bass(bass, 1000);
 #define PROP_AMP_ENABLE    5
 
 #define CHORUS_DELAY_LENGTH (16*AUDIO_BLOCK_SAMPLES)
-
+// Chorus for guitar Solo
 AudioEffectChorus         chorus;
+// For Bass
 AudioFilterBiquad         bassBiquad;
-
+// Rhythm guitar
 AudioSynthKarplusStrong   E2string;
 AudioSynthKarplusStrong   A2string;
 AudioSynthKarplusStrong   D3string;
@@ -56,7 +70,7 @@ AudioSynthKarplusStrong   B3string;
 AudioSynthKarplusStrong   E4string;
 AudioSynthKarplusStrong   soloStrings;
 AudioSynthKarplusStrong   bassStrings;
-
+// wav drum samples
 AudioPlayMemory           audioHihat;
 AudioPlayMemory           audioKick;
 AudioPlayMemory           audioSnare;
@@ -92,126 +106,143 @@ int n_chorus = 1;
 elapsedMillis usageTimer;
 
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
-  while (!Serial);
-  delay(700);
-  Serial.println("Start...");
-  AudioMemory(26);
-  /***Hihat Drum***/
-  mix1.gain(0, 0.07);
-  /***Kick Drum***/
-  mix1.gain(1, .75);
-  /***Snare Drum***/
-  mix1.gain(2, 0.23);
-  /****Guitar Chords***/
-  mix2.gain(1, GUITAR_CHORDS_GAIN);
-  mix2.gain(2, GUITAR_CHORDS_GAIN);
-  mix2.gain(3, GUITAR_CHORDS_GAIN);
-  mix3.gain(1, GUITAR_CHORDS_GAIN);
-  mix3.gain(2, GUITAR_CHORDS_GAIN);
-  mix3.gain(3, GUITAR_CHORDS_GAIN);
-  /****Guitar Solo****/
-  mix4.gain(2, .25);
-  /****Bass Guitar****/
-  mix4.gain(1, .45);
-
-  //bassBiquad.setLowpass(0, 110, 0.707);
-  bassBiquad.setLowpass(0, 110, 0.54);
-  bassBiquad.setLowpass(1, 110, 1.3);
-  bassBiquad.setLowpass(2, 110, 0.54);
-  bassBiquad.setLowpass(3, 110, 1.3);
-
-  chorus.voices(n_chorus);
-  chorus.begin(delayline, CHORUS_DELAY_LENGTH, n_chorus);
-
-  AudioProcessorUsageMaxReset();
-  AudioMemoryUsageMaxReset();
-
-  // if using prop shield?
-  pinMode(PROP_AMP_ENABLE, OUTPUT);
-  digitalWrite(PROP_AMP_ENABLE, HIGH);// Enable Amplifier
-  
-  Drum1.begin(); // Start hihat Track
-  Drum2.begin(); // Start kick drum Track
-  Drum3.begin(); // Start snare drum Track
-  Guitar.begin(); // Start rhythm guitar Track
-  SoloGuitar.begin(); // Start solo guitar Track
-  Bass.begin(); // Start bass guitar Track
-  Imagine.begin(); // Start Master Track
-  usageTimer = 0;
+    pinMode(LED_BUILTIN, OUTPUT);
+    while (!Serial);
+    delay(700);
+    Serial.println("Start...");
+    AudioMemory(26);
+    /***Hihat Drum***/
+    mix1.gain(0, 0.07);
+    /***Kick Drum***/
+    mix1.gain(1, .75);
+    /***Snare Drum***/
+    mix1.gain(2, 0.23);
+    /****Guitar Chords***/
+    mix2.gain(1, GUITAR_CHORDS_GAIN);
+    mix2.gain(2, GUITAR_CHORDS_GAIN);
+    mix2.gain(3, GUITAR_CHORDS_GAIN);
+    mix3.gain(1, GUITAR_CHORDS_GAIN);
+    mix3.gain(2, GUITAR_CHORDS_GAIN);
+    mix3.gain(3, GUITAR_CHORDS_GAIN);
+    /****Guitar Solo****/
+    mix4.gain(2, .25);
+    /****Bass Guitar****/
+    mix4.gain(1, .45);
+    
+    // set low pass for bass guitar.
+    //bassBiquad.setLowpass(0, 110, 0.707);
+    bassBiquad.setLowpass(0, 110, 0.54);
+    bassBiquad.setLowpass(1, 110, 1.3);
+    bassBiquad.setLowpass(2, 110, 0.54);
+    bassBiquad.setLowpass(3, 110, 1.3);
+    
+    chorus.voices(n_chorus);
+    chorus.begin(delayline, CHORUS_DELAY_LENGTH, n_chorus);
+    
+    AudioProcessorUsageMaxReset();
+    AudioMemoryUsageMaxReset();
+    
+    // if using prop shield?
+    pinMode(PROP_AMP_ENABLE, OUTPUT);
+    digitalWrite(PROP_AMP_ENABLE, HIGH);// Enable Amplifier
+    
+    Drum1.begin(); // Start hihat Track Thread
+    Drum2.begin(); // Start kick drum Track Thread
+    Drum3.begin(); // Start snare drum Track Thread
+    Guitar.begin(); // Start rhythm guitar Track Thread
+    SoloGuitar.begin(); // Start solo guitar Track Thread
+    Bass.begin(); // Start bass guitar Track Thread
+    Imagine.begin(); // Start Master Track Timer
+    usageTimer = 0;
 }
 
+// Loop is concidered a Thread too.  
 void loop() {
-  if (usageTimer >= 100) {
-    Serial.print(AudioProcessorUsage());
-    Serial.print(" ");
-    Serial.print(AudioProcessorUsageMax());
-    Serial.print(" ");
-    Serial.print(AudioMemoryUsage());
-    Serial.print(" ");
-    Serial.println(AudioMemoryUsageMax());
-    usageTimer = 0;
-  }
-
-  int c;
-  if (Serial.available()) {
-    c = Serial.read();
-  }
-
-  if (c >= 0) {
-    if (c == '1') {
-      Drum1.pause();
+    if (usageTimer >= 100) {
+        Serial.print(AudioProcessorUsage());
+        Serial.print(" ");
+        Serial.print(AudioProcessorUsageMax());
+        Serial.print(" ");
+        Serial.print(AudioMemoryUsage());
+        Serial.print(" ");
+        Serial.println(AudioMemoryUsageMax());
+        usageTimer = 0;
     }
-    else if (c == '2') {
-      Drum2.pause();
+    
+    int c;
+    if (Serial.available()) {
+        c = Serial.read();
     }
-    else if (c == '3') {
-      Drum3.pause();
+    
+    if (c >= 0) {
+        if (c == '1') {
+            Serial.println("Pausing Hihat Drum");
+            Drum1.pause();
+        }
+        else if (c == '2') {
+            Serial.println("Pausing Kick Drum");
+            Drum2.pause();
+        }
+        else if (c == '3') {
+            Serial.println("Pausing Snare Drum");
+            Drum3.pause();
+        }
+        else if (c == '4') {
+            Serial.println("Pausing Rhythm Guitar");
+            Guitar.pause();
+        }
+        else if (c == '5') {
+            Serial.println("Pausing Guitar Solo");
+            SoloGuitar.pause();
+        }
+        else if (c == '6') {
+            Serial.println("Pausing Master Track");
+            Imagine.pause();
+        }
+        else if (c == '7') {
+            Serial.println("Stopping Master Track");
+            Imagine.end();
+        }
+        else if (c == 'A') {
+            Serial.println("Resuming Hihat Drum");
+            Drum1.resume();
+        }
+        else if (c == 'B') {
+            Serial.println("Resuming Kick Drum");
+            Drum2.resume();
+        }
+        else if (c == 'C') {
+            Serial.println("Resuming Snare Drum");
+            Drum3.resume();
+        }
+        else if (c == 'D') {
+            Serial.println("Resuming Rhythm Guitar");
+            Guitar.resume();
+        }
+        else if (c == 'E') {
+            Serial.println("Resuming Guitar Solo");
+            SoloGuitar.resume();
+        }
+        else if (c == 'F') {
+            Serial.println("Resuming Guitar Solo");
+            Imagine.resume();
+        }
+        else if (c == 'G') {
+            Serial.println("Restarting Master Track");
+            Imagine.restart();
+        }
+        else if (c == '+') {
+            Imagine.tempo(++myTempo);
+            Serial.print("Increasing Tempo: ");
+            Serial.println(myTempo);
+        }
+        else if (c == '-') {
+            Imagine.tempo(--myTempo);
+            Serial.print("Decreasing Tempo: ");
+            Serial.println(myTempo);
+        }
     }
-    else if (c == '4') {
-      Guitar.pause();
-    }
-    else if (c == '5') {
-      SoloGuitar.pause();
-    }
-    else if (c == '6') {
-      Imagine.pause();
-    }
-    else if (c == '7') {
-      Imagine.end();
-    }
-    else if (c == 'A') {
-      Drum1.resume();
-    }
-    else if (c == 'B') {
-      Drum2.resume();
-    }
-    else if (c == 'C') {
-      Drum3.resume();
-    }
-    else if (c == 'D') {
-      Guitar.resume();
-    }
-    else if (c == 'E') {
-      SoloGuitar.resume();
-    }
-    else if (c == 'F') {
-      Imagine.resume();
-    }
-    else if (c == 'G') {
-      Imagine.restart();
-    }
-    else if (c == '+') {
-      Imagine.tempo(++myTempo);
-      Serial.print("Increasing Tempo: ");
-      Serial.println(myTempo);
-    }
-    else if (c == '-') {
-      Imagine.tempo(--myTempo);
-      Serial.print("Decreasing Tempo: ");
-      Serial.println(myTempo);
-    }
-  }
-  yield();
+    // even loop needs to yield to keep the 'contex switch' happy.
+    yield();
 }
 // -----------------------------------------------------------------------------
