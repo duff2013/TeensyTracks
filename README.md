@@ -16,7 +16,7 @@ To use TeensyTracks you also must install my [Zilch] library (for now) which is 
 <br>
 <h4>How it works - </h4>
 With a piece of sheet music like below:
-![alt text](http://www.guitarnick.com/images/london-bridge-2-easy-guitar-sheet-music.png "London Bridge sheet music")<br>
+![alt text](http://www.guitarnick.com/images/london-bridge-easy-guitar-sheet-music.png "London Bridge sheet music")<br>
 You can see what notes make up the melody of this song, the time signature it uses and how many bars. Teensy Tracks works the same way. Using each of those parameters along with what tempo you want it to play at each track will use this timing for you to layout your tracks by having very simple garage band functionalities. There are three concepts that must be explained for you to layout your tracks to sound in time with each other.
 
 1. Master Track - Provides the timing and produces timing signals for tracks (bar and beat).
