@@ -57,8 +57,8 @@ for ( uint8_t __ToDo = MASTER_TRACK.trackDelayStart( ); __ToDo;  __ToDo = MASTER
  */
 class MasterTrack {
 public:
-    MasterTrack( uint8_t tempo, keys trackKey, uint8_t bars, uint8_t sigHigh, uint8_t sigLow ) {
-        beatTime          = 60000000 / ( float )tempo;
+    MasterTrack( uint16_t tempo, keys trackKey, uint8_t bars, uint8_t sigHigh, uint8_t sigLow ) {
+        beatTime          = 60000000.0 / tempo;
         timeSignatureHigh = sigHigh;
         timeSignatureLow  = sigLow;
         key               = trackKey;
@@ -79,7 +79,6 @@ public:
      *  Start IntervalTimer
      */
     virtual void begin( void ) {
-        //pinMode(LED_BUILTIN, OUTPUT);
         innerBeatTime = 0;
         MasterTimer.begin( BeatTrack, beatTime / 32.0 );
     }
@@ -135,7 +134,7 @@ public:
      *
      *  @param bpm beat per minute
      */
-    void tempo( uint8_t bpm ) {
+    void tempo( uint16_t bpm ) {
         __disable_irq( );
         MasterTimer.end( );
         beatTime                  = 60000000 / ( float )bpm;
@@ -253,7 +252,7 @@ private:
     static IntervalTimer MasterTimer;
     static void          BeatTrack( void );
     static float         volume;
-    static float         beatTime;
+    static float        beatTime;
     static keys          key;
     
     static volatile uint8_t  count;
@@ -274,7 +273,6 @@ private:
  */
 class Track : public MasterTrack {
 private:
-    
     using MasterTrack::trackDelayStart;
     using MasterTrack::trackDelayEnd;
     using MasterTrack::restart;
@@ -284,8 +282,6 @@ private:
     typedef void ( * task_func_t )( void *arg );
     task_func_t trackThread;
     uint16_t threadSize;
-    void end( void ) { }
-    static inline void QUATER_NOTE_TRIPLET_DELAY( void ) { }
 public:
     /**
      *  Constructer to setup Track threads and their sizes.

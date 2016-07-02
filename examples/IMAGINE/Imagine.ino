@@ -27,9 +27,8 @@
 #include "chords.h"
 // Must declare static Track Threads here to be visible to the Track class.
 // See other tabs for the Track Thread code. Each one of these Tracks runs
-// independent of each other by using the scheduling library Zilch which
-// provides "context switch" to each Track Thread. These Tracks get there
-// timing from MasterTrack Class.
+// independent of each other by using the scheduling library Zilch. These
+// Tracks get there timing from the MasterTrack Class.
 static void hihat(void *arg);
 static void kick(void *arg);
 static void snare(void *arg);

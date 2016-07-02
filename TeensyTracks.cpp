@@ -50,7 +50,6 @@ unsigned long MasterTrack::thritySecondBarMulitplier;
 void MasterTrack::BeatTrack( void ) {
     
     if ( ++count > 32 ) {
-        //digitalWriteFast(LED_BUILTIN, !digitalReadFast(LED_BUILTIN));
         bool bar = false;
         if ( ++currentBeat >= ( timeSignatureHigh + 1 ) ) {
             if ( ++currentBar >= ( measures + 1 ) ) {
