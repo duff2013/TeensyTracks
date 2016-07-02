@@ -11,7 +11,7 @@
  Since this library uses cooperative multi threading for the track threads,
  do not use any dynamic memory operations. Things like String, prinf and such
  should not be used. All tracks must call the "yield()" function at least once
- per spin of any loops so delayMicroseconds does not yield, it should be avoided 
+ per spin of any loops so delayMicroseconds does not yield, it should be avoided
  if possible.
  */
 #include <TeensyTracks.h>
@@ -32,7 +32,7 @@ static void guitarThread(void *arg);
 #define NUM_MEASURES 8
 
 // The tempo of the song in Beats Per Minute (BPM)
-uint8_t myTempo = 210;
+uint16_t myTempo = 200;
 
 // Master Track class needs the tempo, key (for reference only now) number of measures or (bars),
 // and Time Signatures, this one uses 4/4. Only one Master Track should be declared.
@@ -41,7 +41,7 @@ MasterTrack LondonBridges(myTempo, G, NUM_MEASURES, 4, 4);
 // Track class, first argument is the static void function and the amount of stack space it
 // needs. If you run into problems with the Tracks not playing or weird things happening
 // it could be the stack space needs to increase.
-Track guitarTrack(guitarThread, 1000);
+Track guitarTrack(guitarThread, 2000);
 
 // Prop Shield enable
 #define PROP_AMP_ENABLE    5
@@ -58,6 +58,8 @@ AudioConnection in(audioGuitar, mixer);
 AudioConnection out(mixer, dac);
 
 void setup() {
+    while (!Serial);
+    delay(100);
     AudioMemory(26);
     mixer.gain(0, .25);
     // if using prop shield?
@@ -70,6 +72,27 @@ void setup() {
 }
 
 void loop() {
+    int c;
+    if (Serial.available()) {
+        c = Serial.read();
+    }
+    
+    if (c >= 0) {
+        // type '+' in serial monitor to increase tempo
+        if (c == '+') {
+            myTempo += 20;
+            LondonBridges.tempo(myTempo);
+            //Serial.print("Increasing Tempo: ");
+            //Serial.println(myTempo);
+        }
+        // decrease tempo
+        else if (c == '-') {
+            myTempo -= 20;
+            LondonBridges.tempo(myTempo);
+            //Serial.print("Decreasing Tempo: ");
+            //Serial.println(myTempo);
+        }
+    }
     // must yield for threads to work, no free spinning loops.
     yield();
 }
@@ -184,7 +207,7 @@ static void guitarThread(void *arg) {
                         Serial.print("Bar 7 -> A3      ");
                     }
                     audioGuitar.noteOn(NOTE_D4, .6);
-                    Serial.println("D4");
+                    Serial.println("G3");
                     break;
                 case 8:
                     TRACK_DELAY(LondonBridges, HALF_BAR) {
