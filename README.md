@@ -7,8 +7,8 @@ TeensyTracks provides the timing for laying multiple audio tracks to play in uni
 
 1. Live recording and playback, in effect make a looper track using the Audio Library.
 2. Make tracks dynamic in the sense I can add or subtract tracks from the sketch in realtime. Not related to dynamic memory allocations.
-3. Specialize a version of Zlich for TeensyTracks, one library install then and specific thread support.
-4. Added lead in before track starts.
+3. Incorperate a specialized version of Zlich into TeensyTracks, no need to install Zlich also.
+4. Allow an 2 beat intro for tracks.
 
 ---
 <h4>TeensyTracks Usage</h4>
