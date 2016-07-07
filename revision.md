@@ -1,3 +1,7 @@
+><b>Updated (7/7/16 v0.1.0)</b><br>
+* No longer have to install Zlich, included now.<br>
+* Can now start, stop, rewind, fastforward tracks.<br>
+
 ><b>Updated (7/2/16 v0.0.3)</b><br>
 * More documentation.<br>
 * Fixed tempo.<br>

@@ -65,9 +65,7 @@ void setup() {
     // if using prop shield?
     pinMode(PROP_AMP_ENABLE, OUTPUT);
     digitalWrite(PROP_AMP_ENABLE, HIGH);// Enable Amplifier
-    // start the track
-    guitarTrack.begin();
-    // start master track, must be called after all tracks have begun
+    // start master track and all tracks
     LondonBridges.begin();
 }
 
@@ -100,9 +98,7 @@ void loop() {
  Guitar Track code goes below
  *******************************************************************************/
 static void guitarThread(void *arg) {
-    // Tracks never end unless the Master Track signals the EndTrack variable
-    // This example does not end.
-    while (!guitarTrack.EndTrack) {
+    while (1) {
         // ".onBar' monitors for a signal from the Master Track that a new bar is
         // happening, you are responsible to clear it before the next bar with
         // ".clearBar" shown at end of this if statement.

@@ -35,21 +35,23 @@ volatile uint16_t MasterTrack::currentBeat;
 volatile uint16_t MasterTrack::measures;
 
 MasterTrack     * MasterTrack::first_track = NULL;
-Zilch             MasterTrack::masterTrackThread( 2000 );
+Thread            MasterTrack::masterTrackThread( 2000 );
 
 unsigned long MasterTrack::wholeBarMulitplier;
 unsigned long MasterTrack::halfBarMulitplier;
 unsigned long MasterTrack::quarterBarMulitplier;
-unsigned long MasterTrack::eigthBarMulitplier;
+unsigned long MasterTrack::eighthBarMulitplier;
 unsigned long MasterTrack::sixteenthBarMulitplier;
 unsigned long MasterTrack::thritySecondBarMulitplier;
-
+unsigned long MasterTrack::quarterTripletBarMulitplier;
+unsigned long MasterTrack::eighthTripletBarMulitplier;
 /**
  *  Track timing control provided by the IntervalTimer.
  */
 void MasterTrack::BeatTrack( void ) {
     
     if ( ++count > 32 ) {
+        count = 1;
         bool bar = false;
         if ( ++currentBeat >= ( timeSignatureHigh + 1 ) ) {
             if ( ++currentBar >= ( measures + 1 ) ) {
@@ -59,8 +61,6 @@ void MasterTrack::BeatTrack( void ) {
             currentBeat = 1;
         }
         
-        count = 1;
-        
         if ( currentBar == 0 ) return;
         
         MasterTrack *p;
@@ -68,7 +68,6 @@ void MasterTrack::BeatTrack( void ) {
             p->isBeat = true;
             p->isBar = bar;
         }
-        
     }
 }
 /**

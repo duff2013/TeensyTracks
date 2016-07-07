@@ -144,20 +144,14 @@ void setup() {
     // if using prop shield?
     pinMode(PROP_AMP_ENABLE, OUTPUT);
     digitalWrite(PROP_AMP_ENABLE, HIGH);// Enable Amplifier
-    
-    Drum1.begin(); // Start hihat Track Thread
-    Drum2.begin(); // Start kick drum Track Thread
-    Drum3.begin(); // Start snare drum Track Thread
-    Guitar.begin(); // Start rhythm guitar Track Thread
-    SoloGuitar.begin(); // Start solo guitar Track Thread
-    Bass.begin(); // Start bass guitar Track Thread
-    Imagine.begin(); // Start Master Track Timer
+    // Master Track begin() starts all tracks.
+    Imagine.begin();
     usageTimer = 0;
 }
 
-// Loop is concidered a Thread too.  
+// Loop is considered a Thread too.
 void loop() {
-    if (usageTimer >= 100) {
+    if (usageTimer >= 500) {
         Serial.print(AudioProcessorUsage());
         Serial.print(" ");
         Serial.print(AudioProcessorUsageMax());
@@ -200,7 +194,7 @@ void loop() {
         }
         else if (c == '7') {
             Serial.println("Stopping Master Track");
-            Imagine.end();
+            Imagine.stop();
         }
         else if (c == 'A') {
             Serial.println("Resuming Hihat Drum");
@@ -223,25 +217,25 @@ void loop() {
             SoloGuitar.resume();
         }
         else if (c == 'F') {
-            Serial.println("Resuming Guitar Solo");
+            Serial.println("Resuming all Paused Tracks");
             Imagine.resume();
         }
         else if (c == 'G') {
-            Serial.println("Restarting Master Track");
+            Serial.println("Restarting all Tracks from beginning");
             Imagine.restart();
         }
         else if (c == '+') {
             Imagine.tempo(++myTempo);
-            Serial.print("Increasing Tempo: ");
+            Serial.print("Increasing Tempo to: ");
             Serial.println(myTempo);
         }
         else if (c == '-') {
             Imagine.tempo(--myTempo);
-            Serial.print("Decreasing Tempo: ");
+            Serial.print("Decreasing Tempo to: ");
             Serial.println(myTempo);
         }
     }
-    // even loop needs to yield to keep the 'contex switch' happy.
+    // even loop needs to yield to keep the 'context switch' happy.
     yield();
 }
 // -----------------------------------------------------------------------------
