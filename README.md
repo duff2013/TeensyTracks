@@ -14,7 +14,7 @@ TeensyTracks provides the timing for laying multiple audio tracks to play in uni
 ---
 <h4>TeensyTracks Usage</h4>
 TeensyTracks uses a simple scheduler library for Teensy's and since you need this requirement you must not use any dynamic memory operations since they will create havoc with the stack allocations, so no String, malloc, printf and such also! While some people might ask why use a threaded environment for Tracks it makes it much easier to have independent tracks play along with each other like Garage Band does. Without these threads your programs would become in my opinion horribly complicated to manage and syncing all the Tracks to each other would be a nightmare.
-<br>
+---
 <h4>How it works - </h4>
 With a piece of sheet music like below:
 ![alt text](http://www.guitarnick.com/images/london-bridge-easy-guitar-sheet-music.png "London Bridge sheet music")<br>

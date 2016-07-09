@@ -39,6 +39,7 @@ class MasterTrack;
 #define SIXTEENTH_BAR           4
 #define THIRTY_SECOND_BAR       5
 #define QUATER_TRIPLET_BAR      6
+#define EIGHTH_TRIPLET_BAR      7
 
 #define MASTER_TRACK MasterTrack &p
 /**
@@ -305,6 +306,9 @@ public:
             case QUATER_TRIPLET_BAR:
                 delayLength = quarterTripletBarMulitplier;
                 break;
+            case EIGHTH_TRIPLET_BAR:
+                delayLength = eighthTripletBarMulitplier;
+                break;
             default:
                 return 0;
                 break;
@@ -313,7 +317,7 @@ public:
         return 0;
     }
 protected:
-    MasterTrack( void ) : EndTrack( false ) {
+    MasterTrack( void ) {
         if (first_track == NULL) {
             first_track = this;
         } else {
