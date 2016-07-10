@@ -25,7 +25,6 @@
 
 #include "Arduino.h"
 #include "utility/thread.h"
-//#include "zilch.h"
 
 enum keys {C, Cs, D, Ef, E, F, Fs, G, Gs, A, Bf, B};
 
@@ -49,6 +48,7 @@ class MasterTrack;
  *  @param MASTER_TRACK MasterTrack class, this is so we can use the trackDelayStart and
  *                      trackDelayEnd functions in the MasterTrack class.
  *  @param x            WHOLE_BAR,HALF_BAR,QUARTER_BAR,EIGHTH_BAR,SIXTEENTH_BAR,THIRTY_SECOND_BAR
+ *                      QUATER_TRIPLET_BAR,EIGHTH_TRIPLET_BAR
  *
  *  @return nothing
  */
@@ -81,7 +81,7 @@ public:
         count = 0;
     }
     /**
-     *  Start IntervalTimer
+     *  Start IntervalTimer and all tracks
      */
     virtual void begin( void ) {
         innerBeatTime = 0;

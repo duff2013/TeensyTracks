@@ -9,7 +9,7 @@ TeensyTracks provides the timing for laying multiple audio tracks to play in uni
 2. Make tracks dynamic in the sense I can add or subtract tracks from the sketch in realtime. Not related to dynamic memory allocations.
 3. Incorperate a specialized version of Zlich into TeensyTracks, no need to install Zlich also. (Done!)
 4. Fast forward and rewind. (Done!)
-5. Allow an 2 beat intro for tracks.
+5. Allow an intro for all tracks.
 
 ---
 <h4>TeensyTracks Usage</h4>
@@ -27,7 +27,11 @@ You can see what notes make up the melody of this song, the time signature it us
 
 ---
 <h4>Master Track</h4>
-Uses the IntervalTimer method to fire every 1/32 of one beat at a given tempo. The MasterTrack class uses this to provide the timing and signals to the tracks for any instrument delays and/or signals on the beat and/or bar. 
+Uses the IntervalTimer method to fire every 1/32 of one beat at a given tempo. The MasterTrack class uses this to provide the timing and signals to the tracks for any instrument delays and/or signals on the beat and/or bar. It controls starting, restarting, stoping, pausing, rewinding and fastforwarding similiar to Garage Band for all tracks.
+
+![alt text](controls.png "Garage Band Controls")<br>
+
+ The MasterTrack class also handles alloating the tracks threading enviroment. This is what allows these controls to work.
 
 ---
 <h4>Tracks</h4>
