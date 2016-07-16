@@ -27,7 +27,7 @@ You can see what notes make up the melody of this song, the time signature it us
 
 ---
 <h4>Master Track</h4>
-Uses the IntervalTimer method to fire every 1/32 of one beat at a given tempo. The MasterTrack class uses this timer to provide the timing and signals for all tracks. These signals occur on the beat and/or bar of each track. It also controls starting, restarting, stoping, pausing, rewinding and fastforwarding similiar to Garage Band for all tracks.
+Uses the IntervalTimer method to fire every beat at a given tempo. The MasterTrack class uses this timer to provide the timing and signals for all tracks. These signals occur on the beat and/or bar of each track. It also controls starting, restarting, stoping, pausing, rewinding and fastforwarding similiar to Garage Band for all tracks.
 
 ![alt text](https://github.com/duff2013/TeensyTracks/blob/master/pics/controls.png "Garage Band Controls")<br>
 
