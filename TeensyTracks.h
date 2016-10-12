@@ -40,7 +40,13 @@ class MasterTrack;
 #define QUATER_TRIPLET_BAR      6
 #define EIGHTH_TRIPLET_BAR      7
 
-#define MASTER_TRACK MasterTrack &p
+#define MASTER      0
+#define ON_BEAT     1
+#define ON_BAR      2
+#define FREE_RUN    3
+
+//#define MASTER_TRACK MasterTrack &p
+#define MASTER_TRACK Track &p
 /**
  *  This is the delays that keep playing instruments or whatever in time with each other.
  *  User must supply the defined measure delays above WHOLE_BAR... etc.
@@ -54,8 +60,9 @@ class MasterTrack;
  */
 #define TRACK_DELAY( MASTER_TRACK, x  )    \
 for ( uint8_t __ToDo = MASTER_TRACK.trackDelayStart( ); __ToDo;  __ToDo = MASTER_TRACK.trackDelayEnd( x ) )
+
 /**
- *  Only one Master Track can be used, all Track Class inherit this class.
+ *  Only one Master Track can be used, all Track Classes inherit this class.
  *  TODO: make it a singleton!
  */
 class MasterTrack {
@@ -78,23 +85,30 @@ public:
         thritySecondBarMulitplier   = wholeBarMulitplier/32;
         quarterTripletBarMulitplier = quarterBarMulitplier * 0.66666666666667f;
         eighthTripletBarMulitplier  = eighthBarMulitplier * 0.66666666666667f;
-        count = 0;
+        count  = 0;
+        isBeat = false;
+        isBar  = false;
+        threadRunType = MASTER;
     }
     /**
      *  Start IntervalTimer and all tracks
      */
-    virtual void begin( void ) {
-        innerBeatTime = 0;
-        MasterTrack *p;
-        for ( p = MasterTrack::first_track; p; p = p->next_track ) {
-            p->begin( );
-        }
-        MasterTimer.begin( BeatTrack, beatTime/32 );
-    }
+    virtual void begin( void );
+    
+    /**
+     *  Call track threads at if configured for 
+     *  bar or beat run timing.
+     *
+     *  @param arg none
+     */
+    static void masterThread(void *arg);
+    
     /**
      *  Pause Master Track and Tracks Threads
      */
     virtual void pause( void ) {
+        isBeat = false;
+        while ( !isBeat ) yield( );
         __disable_irq( );
         MasterTimer.end( );
         __enable_irq( );
@@ -103,6 +117,7 @@ public:
             p->pause( );
         }
     }
+    
     /**
      *  Resume Master Track and Track Threads
      */
@@ -111,12 +126,14 @@ public:
         for ( p = MasterTrack::first_track; p; p = p->next_track ) {
             p->resume( );
         }
-        MasterTimer.begin( BeatTrack, beatTime/32 );
+        MasterTimer.begin( BeatTrack, beatTime );
     }
+    
     /**
      *  Restart IntervalTimer and Track Threads
      */
     virtual void restart( void ) {
+        
         __disable_irq( );
         MasterTimer.end( );
         volume        = 0;
@@ -127,8 +144,9 @@ public:
         for ( p = MasterTrack::first_track; p; p = p->next_track ) {
             p->restart( );
         }
-        MasterTimer.begin( BeatTrack, beatTime/32 );
+        MasterTimer.begin( BeatTrack, beatTime );
     }
+    
     /**
      *  Stop all threads - puts them in a returned state
      */
@@ -141,26 +159,30 @@ public:
             p->stop( );
         }
     }
+    
     /**
      *  change tempo of the Master Track, all tracks will follow
      *
      *  @param bpm beat per minute
      */
     void tempo( uint16_t bpm ) {
-        __disable_irq( );
+        isBeat = false;
+        while ( !isBeat ) yield( );
+        //__disable_irq( );
         MasterTimer.end( );
-        beatTime                    = 60000000 / ( float )bpm;
+        beatTime                    = 60000000.0 / bpm;
         wholeBarMulitplier          = beatTime * timeSignatureHigh;
         halfBarMulitplier           = wholeBarMulitplier/2;
         quarterBarMulitplier        = wholeBarMulitplier/4;
-        eighthBarMulitplier          = wholeBarMulitplier/8;
+        eighthBarMulitplier         = wholeBarMulitplier/8;
         sixteenthBarMulitplier      = wholeBarMulitplier/16;
         thritySecondBarMulitplier   = wholeBarMulitplier/32;
         quarterTripletBarMulitplier = quarterBarMulitplier * 0.66666666666667f;
         eighthTripletBarMulitplier  = eighthBarMulitplier * 0.66666666666667f;
-        __enable_irq( );
-        MasterTimer.begin( BeatTrack, beatTime/32 );
+        //__enable_irq( );
+        MasterTimer.begin( BeatTrack, beatTime );
     }
+    
     /**
      *  <#Description#>
      *
@@ -170,7 +192,7 @@ public:
      */
     int16_t rewind( uint16_t bars = 0 ) {
         
-        uint16_t cbeat;
+        /*uint16_t cbeat;
         int16_t cbar;
         __disable_irq( );
         MasterTimer.end( );
@@ -206,8 +228,9 @@ public:
         if ( cbar > measures ) {
             cbar = 1;
         }
-        return cbar;
+        return cbar;*/
     }
+    
     /**
      *  <#Description#>
      *
@@ -216,7 +239,7 @@ public:
      *  @return <#return value description#>
      */
     int16_t fastForward( uint16_t bars = 0 ) {
-        uint16_t cbeat;
+        /*uint16_t cbeat;
         int16_t cbar;
         __disable_irq( );
         MasterTimer.end( );
@@ -252,17 +275,9 @@ public:
         if ( cbar > measures ) {
             cbar = 1;
         }
-        return cbar;
+        return cbar;*/
     }
     
-    //
-    bool    onBeat( void );
-    uint8_t getBeat( void );
-    void    clearBeat( void );
-    
-    bool    onBar( void );
-    uint8_t getBar( void );
-    void    clearBar( void );
     /**
      *  Used by the TRACK_DELAY Macro, this starts the timer before any instrument is played.
      *
@@ -270,8 +285,17 @@ public:
      */
     uint8_t trackDelayStart( void ) {
         innerBeatTime = 0;
+        //innerBeatTime = 0;
+        if ( currentBeat == 1 ) {
+            //Serial.println(barMicros);
+            //innerBeatTime = barMicros;
+        } else {
+            //innerBeatTime = 0;
+        }
+        
         return 1;
     }
+    
     /**
      *  Used by the TRACK_DELAY Macro, called after instrument is played, this delays the next
      *  instrument so they play in time.
@@ -283,6 +307,7 @@ public:
      */
     uint8_t trackDelayEnd( unsigned long duration ) {
         elapsedMicros time = innerBeatTime;
+        //
         unsigned long delayLength;
         switch ( duration ) {
             case WHOLE_BAR:
@@ -316,6 +341,7 @@ public:
         while ( time < delayLength ) yield( );
         return 0;
     }
+    
 protected:
     MasterTrack( void ) {
         if (first_track == NULL) {
@@ -323,30 +349,33 @@ protected:
         } else {
             MasterTrack *p;
             for ( p = first_track; p->next_track; p = p->next_track ) ;
-            p->next_track= this;
+            p->next_track = this;
         }
         next_track = NULL;
     }
-    /**
-     *  beat and bar signals
-     */
-    volatile bool isBeat;
-    volatile bool isBar;
+    uint8_t threadRunType;
     /**
      *  This sets up the Track Threads, the main thread is the loop function.
      *  Set at 2000 bytes but it might need to increase depending how many local
      *  variables are defined in the loop function.
      */
-    static Thread masterTrackThread;// main task
+    static Thread masterTrackThreadClass;// main task
+    
+    static volatile uint16_t currentBar;
+    static volatile uint16_t currentBeat;
 private:
     MasterTrack             *next_track;
     static MasterTrack      *first_track;
     
-    static volatile uint16_t currentBar;
-    static volatile uint16_t currentBeat;
+    
+    
     elapsedMicros            innerBeatTime;
     
+    static elapsedMicros     beatMicros;
+    static elapsedMicros     barMicros;
+    
     static IntervalTimer MasterTimer;
+    
     static void          BeatTrack( void );
     static float         volume;
     static float         beatTime;
@@ -365,6 +394,9 @@ private:
     static unsigned long thritySecondBarMulitplier;
     static unsigned long quarterTripletBarMulitplier;
     static unsigned long eighthTripletBarMulitplier;
+    
+    static volatile bool isBeat;
+    static volatile bool isBar;
 };
 // ****************************************************************************************** //
 /**
@@ -372,8 +404,6 @@ private:
  */
 class Track : public MasterTrack {
 private:
-    using MasterTrack::trackDelayStart;
-    using MasterTrack::trackDelayEnd;
     using MasterTrack::tempo;
     using MasterTrack::rewind;
     using MasterTrack::fastForward;
@@ -385,43 +415,57 @@ private:
      *  Restarts the Track thread from the beginning.
      */
     void restart( void ) {
-        masterTrackThread.restart( trackThread );
+        
+        masterTrackThreadClass.restart( trackThread );
     }
     /**
      *  Returns the Track thread.
      */
     void stop( void ) {
-        masterTrackThread.stop( trackThread );
+        masterTrackThreadClass.stop( trackThread );
     }
     /**
      *  Creates and starts a Track Thread, these run independently of each other
      */
     void begin( void ) {
-        masterTrackThread.create(trackThread, threadSize, 0);
+        masterTrackThreadClass.create( trackThread, threadSize, 0, 1 );
     }
     
 public:
     /**
      *  Constructer to setup Track threads and their sizes.
      */
-    Track( task_func_t track, uint16_t size = 1000 ) {
-        trackThread = track;
-        threadSize  = size;
-        isBeat      = false;
-        isBar       = false;
+    Track( task_func_t track, uint8_t runType, uint16_t size = 1000 ) {
+        threadRunType = runType;
+        trackThread   = track;
+        threadSize    = size;
     }
     /**
      *  Pauses the Track thread where it is.
      */
     void pause( void ) {
-        masterTrackThread.pause( trackThread );
+        masterTrackThreadClass.pause( trackThread );
     }
     /**
      *  Resumes the Track thread where it was paused.
      */
     void resume( void ) {
-        masterTrackThread.resume( trackThread );
+        masterTrackThreadClass.resume( trackThread );
+    }
+    /**
+     *
+     */
+    uint8_t getBar( void ) {
+        uint16_t bar = currentBar;
+        return bar;
     }
     
+    /**
+     *
+     */
+    uint8_t getBeat( void ) {
+        uint16_t beat = currentBeat;
+        return beat;
+    }
 };
 #endif /* defined(TeensyTracks_h_) */

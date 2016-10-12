@@ -190,6 +190,7 @@ typedef struct {
     thread_func_t   func_ptr;   // Thread function
     enum ThreadState state;     // Current thread state
     uint32_t        address;    // Address for swap fifo
+    uint8_t         frame_type; // Is this a track or not
 } stack_frame_t;
 #elif defined(KINETISL)
 typedef struct {

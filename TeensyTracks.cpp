@@ -34,9 +34,8 @@ volatile uint16_t MasterTrack::currentBar;
 volatile uint16_t MasterTrack::currentBeat;
 volatile uint16_t MasterTrack::measures;
 
-MasterTrack     * MasterTrack::first_track = NULL;
-Thread            MasterTrack::masterTrackThread( 2000 );
-
+MasterTrack * MasterTrack::first_track = NULL;
+Thread        MasterTrack::masterTrackThreadClass( 2000 );
 unsigned long MasterTrack::wholeBarMulitplier;
 unsigned long MasterTrack::halfBarMulitplier;
 unsigned long MasterTrack::quarterBarMulitplier;
@@ -45,77 +44,74 @@ unsigned long MasterTrack::sixteenthBarMulitplier;
 unsigned long MasterTrack::thritySecondBarMulitplier;
 unsigned long MasterTrack::quarterTripletBarMulitplier;
 unsigned long MasterTrack::eighthTripletBarMulitplier;
+volatile bool MasterTrack::isBeat;
+volatile bool MasterTrack::isBar;
+elapsedMicros MasterTrack::beatMicros;
+elapsedMicros MasterTrack::barMicros;
+
 /**
  *  Track timing control provided by the IntervalTimer.
  */
 void MasterTrack::BeatTrack( void ) {
+    beatMicros = 0;
+    count = 1;
+    bool bar = false;
     
-    if ( ++count > 32 ) {
-        count = 1;
-        bool bar = false;
-        if ( ++currentBeat >= ( timeSignatureHigh + 1 ) ) {
-            if ( ++currentBar >= ( measures + 1 ) ) {
-                currentBar = 1;
-            };
-            bar = true;
-            currentBeat = 1;
-        }
-        
-        if ( currentBar == 0 ) return;
-        
+    if ( ++currentBeat >= ( timeSignatureHigh + 1 ) ) {
+        if ( ++currentBar >= ( measures + 1 ) ) currentBar = 1;
+        barMicros = beatMicros;
+        bar = true;
+        currentBeat = 1;
+        masterTrackThreadClass.restart_all( );
+    }
+    
+    if ( currentBar == 0 ) return;
+    
+    isBeat = true;
+    isBar = bar;
+    if ( !bar ) {
         MasterTrack *p;
         for ( p = MasterTrack::first_track; p; p = p->next_track ) {
-            p->isBeat = true;
-            p->isBar = bar;
+            uint8_t thRunType = p->threadRunType;
+            if ( thRunType == ON_BEAT ) p->restart( );
         }
     }
 }
+
 /**
- *  Lets users know when the beat happens
+ *  <#Description#>
  *
- *  @return true when a new beat
+ *  @param arg <#arg description#>
  */
-bool MasterTrack::onBeat( void ) {
-    const bool ob = isBeat;
-    return ob;
+void MasterTrack::masterThread( void *arg ) {
+    /*while ( 1 ) {
+        if ( isBar ) {
+            masterTrackThreadClass.restart_all( );
+            isBar = false;
+            isBeat = false;
+        }
+        else if ( isBeat ) {
+            isBeat = false;
+           MasterTrack *p;
+            for ( p = MasterTrack::first_track; p; p = p->next_track ) {
+                uint8_t thRunType = p->threadRunType;
+                if ( thRunType == ON_BEAT ) {
+                    p->restart( );
+                }
+            }
+        }
+        yield( );
+    }*/
 }
+
 /**
- *  Current beat based off the Time Signature
- *
- *  @return current beat
+ *  <#Description#>
  */
-uint8_t MasterTrack::getBeat( void ) {
-    const uint8_t beat = currentBeat;
-    return beat;
-}
-/**
- *  User must clear the isBeat var for the upcoming beat
- */
-void MasterTrack::clearBeat( void ) {
-    const bool beat = false;
-    isBeat = beat;
-}
-/**
- *  Lets users know when the bar happens
- *
- *  @return true when a new bar, user must clear with clearBar
- */
-bool MasterTrack::onBar( void ) {
-    const bool ob = isBar;
-    return ob;
-}
-/**
- *  Current bar based off the Time Signature and beats
- *
- *  @return current bar
- */
-uint8_t MasterTrack::getBar( void ) {
-    return currentBar;
-}
-/**
- *  User must clear the isBar var for the upcoming beat
- */
-void MasterTrack::clearBar( void ) {
-    const bool bar = false;
-    isBar = bar;
+void MasterTrack::begin( void ) {
+    //masterTrackThreadClass.create( masterThread, 300, 0, 0 );
+    innerBeatTime = 0;
+    MasterTrack *p;
+    for ( p = MasterTrack::first_track; p; p = p->next_track ) p->begin( );
+    delayMicroseconds(100);
+    MasterTimer.begin( BeatTrack, beatTime );
 }

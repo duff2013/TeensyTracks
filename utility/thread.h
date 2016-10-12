@@ -50,19 +50,20 @@
 class Thread {
 private:
 public:
-    Thread             ( uint16_t main_stack_size, const uint32_t pattern = 0xA5A5A5A5 ) ;
-    ThreadState create   ( thread_func_t thread, size_t stack_size, void *arg ) ;
-    ThreadState pause    ( thread_func_t thread ) ;
-    ThreadState resume   ( thread_func_t thread ) ;
-    ThreadState restart  ( thread_func_t thread ) ;
-    ThreadState stop     ( thread_func_t thread ) ;
-    ThreadState sync     ( thread_func_t thread ) ;
-    ThreadState state    ( thread_func_t thread ) ;
-    ThreadState state    ( loop_func_t thread ) ;
-    uint32_t  memory   ( thread_func_t thread ) ;
-    uint32_t  memory   ( loop_func_t thread ) ;
-    bool      transmit ( void *p, thread_func_t thread_to, thread_func_t thread_from, int count ) ;
-    bool      receive  ( thread_func_t thread_to, thread_func_t thread_from, void *p ) ;
+    Thread              ( uint16_t main_stack_size, const uint32_t pattern = 0xA5A5A5A5 ) ;
+    ThreadState create  ( thread_func_t thread, size_t stack_size, void *arg, bool isTrack ) ;
+    ThreadState pause   ( thread_func_t thread ) ;
+    ThreadState resume  ( thread_func_t thread ) ;
+    ThreadState restart ( thread_func_t thread ) ;
+    ThreadState stop    ( thread_func_t thread ) ;
+    ThreadState sync    ( thread_func_t thread ) ;
+    ThreadState state   ( thread_func_t thread ) ;
+    ThreadState state   ( loop_func_t thread ) ;
+    ThreadState restart_all( void );
+    uint32_t    memory   ( thread_func_t thread ) ;
+    uint32_t    memory   ( loop_func_t thread ) ;
+    bool        transmit ( void *p, thread_func_t thread_to, thread_func_t thread_from, int count ) ;
+    bool        receive  ( thread_func_t thread_to, thread_func_t thread_from, void *p ) ;
 };
 #endif
 #endif

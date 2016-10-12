@@ -1,9 +1,9 @@
-# TeensyTracks v0.1.0
+# TeensyTracks v1.0.0
 
 <h4>TeensyTracks is a multi track library inspired by Apple's Garage Band.</h4>
 
 ---
-TeensyTracks provides the timing for laying multiple audio tracks to play in unison. Each track runs independent from each other but all tracks are linked to the Master Track which handles tempo, key and time signature. With TeensyTracks you can pause each individual track and resume it or you can pause, stop, resume or restart the Master Track in which all Tracks will follow. Also you can dynamically change the tempo of the Master Track which controls the tempo of all tracks. This library can be used with Paul's Audio Library but is not bound to it so you can use it for other audio software if desired. At the current moment TeensyTracks only handles 4/4 time signature and the key is only for reference. Some more features I want to integrate into this library:
+TeensyTracks provides the timing for laying multiple audio tracks to play in unison. Each track runs independent from each other but all tracks are linked to the Master Track which handles tempo, key and time signature. With TeensyTracks you can pause each individual track and resume it or you can pause, stop, resume or restart the Master Track in which all Tracks will follow. Also you can dynamically change the tempo of the Master Track which controls the tempo of all tracks. This library can be used with Paul's Audio Library. At the current moment TeensyTracks only handles 4/4 time signature and the key is only for reference. Some more features I want to integrate into this library:
 
 1. Live recording and playback, in effect make a looper track using the Audio Library.
 2. Make tracks dynamic in the sense I can add or subtract tracks from the sketch in realtime. Not related to dynamic memory allocations.
@@ -13,7 +13,7 @@ TeensyTracks provides the timing for laying multiple audio tracks to play in uni
 
 ---
 <h4>TeensyTracks Usage</h4>
-TeensyTracks uses a simple scheduler library for Teensy's and since you need this requirement you must not use any dynamic memory operations since they will create havoc with the stack allocations, so no String, malloc, printf and such also! While some people might ask why use a threaded environment for Tracks it makes it much easier to have independent tracks play along with each other like Garage Band does. Without these threads your programs would become in my opinion horribly complicated to manage and syncing all the Tracks to each other would be a nightmare.
+TeensyTracks uses a simple scheduler library for Teensy's and since you need this requirement you must not use any dynamic memory operations since they will create havoc with the stack allocations, so no String, malloc, printf and such! While some people might ask why use a threaded environment for Tracks it makes it much easier to have independent tracks play along with each other like Garage Band does. Without these threads your programs would become in my opinion horribly complicated to manage and syncing all the Tracks to each other would be a nightmare.
 
 ---
 <h4>How it works - </h4>

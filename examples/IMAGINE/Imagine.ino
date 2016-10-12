@@ -1,7 +1,9 @@
 /*
  * This example plays the Song Imagine by John Lennon using
  * the Audio library's AudioSynthKarplusStrong for the guitar
- * and bass and WAV drum samples using the prop shield.
+ * and WAV drum samples using the prop shield using the DAC 
+ * and the USB AUDIO if it is complied using USB->Audio. This 
+ * means you can listen to it through your computer, nice!
  *
  * It expands on the "Guitar" and "SamplePlayer" examples
  * from the Audio library examples. TeensyTracks keeps
@@ -27,30 +29,35 @@
 #include "chords.h"
 // Must declare static Track Threads here to be visible to the Track class.
 // See other tabs for the Track Thread code. Each one of these Tracks runs
-// independent of each other by using the scheduling library Zilch. These
-// Tracks get there timing from the MasterTrack Class.
+// independent of each other by using a special version of the scheduling
+// library, Zilch.
 static void hihat(void *arg);
 static void kick(void *arg);
 static void snare(void *arg);
 static void guitar(void *arg);
 static void soloGuitar(void *arg);
-static void bass(void *arg);
+
 // Number of measure this song has
 #define NUM_MEASURES 20
+
 // The tempo of the song in Beats Per Minute (BPM)
 uint8_t myTempo = 85;
-// Master Track class needs the tempo, key (for reference only now) number of measures or (bars),
-// and Time Signatures this one uses 4/4
+
+// Master Track class needs the tempo, key (for reference only now), number of measures or (bars),
+// and Time Signatures, this one uses 4/4 time. It sets up all the timing for Track_Delays and
+// configures the Master Timer (IntervalTimer) to fire every beat of the song. This Master Timer
+// provides the basis for starting each Track Thread.
 MasterTrack Imagine(myTempo, C, NUM_MEASURES, 4, 4);
-// Track Threads, first argument is the static void function and the amount of stack space it
-// needs. If you run into problems with the Tracks not playing weird things happening it could
-// be the stack space needs to increase.
-Track Drum1(hihat, 1000);
-Track Drum2(kick, 1000);
-Track Drum3(snare, 1000);
-Track Guitar(guitar, 1000);
-Track SoloGuitar(soloGuitar, 1000);
-Track Bass(bass, 1000);
+
+// Track Threads first argument is one of the static void function defined above, then the Track is 
+// either called every beat or every bar and finally is the amount of stack space it needs. If you
+// run into problems with the Tracks not playing weird things happening it could be the stack space 
+// needs to increase. Track Threads can either be called every beat or every bar.
+Track Drum1(hihat,   ON_BEAT, 1000);
+Track Drum2(kick,    ON_BEAT, 1000);
+Track Drum3(snare,   ON_BEAT, 1000);
+Track Guitar(guitar, ON_BAR,  1000);
+Track SoloGuitar(soloGuitar, ON_BAR, 1000);
 
 // Prop Shield and Mic enables
 #define PROP_AMP_ENABLE    5
@@ -79,27 +86,32 @@ AudioMixer4               mix2;
 AudioMixer4               mix3;
 AudioMixer4               mix4;
 AudioOutputAnalog         dac;  // play to DAC
+#ifdef AUDIO_INTERFACE
+AudioOutputUSB            usb;
+#endif
 
-AudioConnection a1(audioHihat, 0, mix1, 0);
-AudioConnection a2(audioKick,  0, mix1, 1);
-AudioConnection a3(audioSnare, 0, mix1, 2);
-AudioConnection a4(E2string,  0, mix2, 1);
-AudioConnection a5(A2string,  0, mix2, 2);
-AudioConnection a6(D3string,  0, mix2, 3);
-AudioConnection a7(G3string, 0, mix3, 1);
-AudioConnection a8(B3string, 0, mix3, 2);
-AudioConnection a9(E4string, 0, mix3, 3);
+AudioConnection a1(audioHihat,   0, mix1,   0);
+AudioConnection a2(audioKick,    0, mix1,   1);
+AudioConnection a3(audioSnare,   0, mix1,   2);
+AudioConnection a4(E2string,     0, mix2,   1);
+AudioConnection a5(A2string,     0, mix2,   2);
+AudioConnection a6(D3string,     0, mix2,   3);
+AudioConnection a7(G3string,     0, mix3,   1);
+AudioConnection a8(B3string,     0, mix3,   2);
+AudioConnection a9(E4string,     0, mix3,   3);
 AudioConnection a10(soloStrings, 0, chorus, 0);
-AudioConnection a11(bassStrings, 0, bassBiquad, 1);
-AudioConnection a12(bassBiquad, 0, mix4, 1);
-AudioConnection a13(chorus, 0, mix4, 2);
+AudioConnection a11(chorus,      0, mix4,   1);
 
 AudioConnection m1(mix1,  0, mix2, 0);
 AudioConnection m2(mix2,  0, mix3, 0);
 AudioConnection m3(mix3,  0, mix4, 0);
 AudioConnection out(mix4, 0, dac,  0);
+#ifdef AUDIO_INTERFACE
+AudioConnection USBoutL(mix4, 0, usb,  0);
+AudioConnection USBoutR(mix4, 0, usb,  1);
+#endif
 
-const float GUITAR_CHORDS_GAIN = 0.07;
+const float GUITAR_CHORDS_GAIN = 0.05;
 short delayline[CHORUS_DELAY_LENGTH];
 int n_chorus = 1;
 elapsedMillis usageTimer;
@@ -113,7 +125,7 @@ void setup() {
     /***Hihat Drum***/
     mix1.gain(0, 0.07);
     /***Kick Drum***/
-    mix1.gain(1, .75);
+    mix1.gain(1, .25);
     /***Snare Drum***/
     mix1.gain(2, 0.23);
     /****Guitar Chords***/
@@ -124,16 +136,7 @@ void setup() {
     mix3.gain(2, GUITAR_CHORDS_GAIN);
     mix3.gain(3, GUITAR_CHORDS_GAIN);
     /****Guitar Solo****/
-    mix4.gain(2, .25);
-    /****Bass Guitar****/
-    mix4.gain(1, .45);
-    
-    // set low pass for bass guitar.
-    //bassBiquad.setLowpass(0, 110, 0.707);
-    bassBiquad.setLowpass(0, 110, 0.54);
-    bassBiquad.setLowpass(1, 110, 1.3);
-    bassBiquad.setLowpass(2, 110, 0.54);
-    bassBiquad.setLowpass(3, 110, 1.3);
+    mix4.gain(1, .18);
     
     chorus.voices(n_chorus);
     chorus.begin(delayline, CHORUS_DELAY_LENGTH, n_chorus);
@@ -149,15 +152,20 @@ void setup() {
     usageTimer = 0;
 }
 
-// Loop is considered a Thread too.
+/*
+ * Loop is considered a Thread too but use it for your non Thread music code. 
+ * Make sure you call "yield();" in any for or while loops so to not starve the 
+ * the Threads of cpu time. 
+ */
 void loop() {
-    if (usageTimer >= 500) {
+    if (usageTimer >= 5000) {
+        Serial.print("Processor Usage: ");
         Serial.print(AudioProcessorUsage());
-        Serial.print(" ");
+        Serial.print(" | Processor Usage Max: ");
         Serial.print(AudioProcessorUsageMax());
-        Serial.print(" ");
+        Serial.print(" | Memory Usage: ");
         Serial.print(AudioMemoryUsage());
-        Serial.print(" ");
+        Serial.print(" | Memory Usage Max: ");
         Serial.println(AudioMemoryUsageMax());
         usageTimer = 0;
     }
@@ -194,7 +202,7 @@ void loop() {
         }
         else if (c == '7') {
             Serial.println("Stopping Master Track");
-            Imagine.stop();
+            Imagine.pause();
         }
         else if (c == 'A') {
             Serial.println("Resuming Hihat Drum");

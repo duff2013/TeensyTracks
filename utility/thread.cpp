@@ -58,7 +58,7 @@ extern "C" {
 #endif
     void init_stack( uint32_t main_stack, uint32_t pattern_override );
 #if defined(KINETISK)
-    ThreadState thread_create( thread_func_t func, size_t stack_size, void *arg );
+    ThreadState thread_create( thread_func_t func, size_t stack_size, void *arg, bool isTrack );
 #elif defined(KINETISL)
     ThreadState thread_create( volatile stack_frame_t *frame, size_t stack_size, thread_func_t func, void *arg );
 #endif
@@ -71,6 +71,8 @@ extern "C" {
     ThreadState  thread_resume  ( thread_func_t func );
     uint32_t     thread_memory  ( thread_func_t func );
     uint32_t     main_memory    ( loop_func_t func );
+    
+    ThreadState  thread_restart_all ( void );
     //inline uint32_t sys_acquire_lock( volatile unsigned int *lock_var );
     //inline uint32_t sys_release_lock( volatile unsigned int *lock_var );
     //void ThreadUseInterrupt(enum IRQ_NUMBER_t interruptName);
@@ -101,6 +103,7 @@ typedef enum  {
     PAUSE,
     RESUME,
     RESTART,
+    RESTART_ALL,
     RETURN,
     TASK_STATE,
     MAIN_STATE,
@@ -125,12 +128,12 @@ Thread::Thread( uint16_t main_stack_size, const uint32_t pattern ) {
     }
 }
 
-ThreadState Thread::create( thread_func_t thread, size_t stack_size, void *arg ) {
+ThreadState Thread::create( thread_func_t thread, size_t stack_size, void *arg, bool isTrack ) {
     // Round stack size to a word multiple
     int s_size = ( stack_size + sizeof ( uint32_t ) ) / sizeof ( uint32_t ) * sizeof ( uint32_t );
     if ( ++num_task >= MAX_TASKS ) return ThreadInvalid;
 #if defined(KINETISK)
-    ThreadState p = thread_create( thread, s_size, arg );
+    ThreadState p = thread_create( thread, s_size, arg, isTrack );
 #elif defined(KINETISL)
     volatile stack_frame_t *frame = &process_tasks[num_task];
     ThreadState p = thread_create( frame, s_size, thread, arg );
@@ -165,6 +168,11 @@ ThreadState Thread::sync( thread_func_t thread) {
 
 ThreadState Thread::restart( thread_func_t thread ) {
     ThreadState p = thread_restart( thread );
+    return p;
+}
+
+ThreadState Thread::restart_all( void ) {
+    ThreadState p = thread_restart_all( );
     return p;
 }
 
@@ -239,6 +247,7 @@ void init_stack( uint32_t main_stack, uint32_t pattern_override ) {
         p->initial_sp = stackroot;
         stackroot -= MIN_MAIN_STACK_SIZE;
     }
+    p->frame_type = 0;
     p->address = 1;
     p->state = ThreadCreated;
     thread_mask = ( 1 << 0 );
@@ -265,7 +274,12 @@ static void thread_start( void ) {
     asm volatile("pop  {r4-r7}\n");  // pop r4-r7 from stack
 #endif
     p->state = ThreadReturned;         // update state when thread has returned
-    for (;;) yield( );               // returned thread, now loops here till restarted
+    uint32_t num;
+    num = init_mask;
+    num &= ~( p->address );
+    init_mask = num;
+    yield( );
+    //for (;;) yield( );               // returned thread, now loops here till restarted
 }
 
 static void threadReturnedState( void ) {
@@ -277,7 +291,7 @@ static void threadReturnedState( void ) {
 #if defined(KINETISL)
 ThreadState thread_create( volatile stack_frame_t *frame, size_t stack_size, thread_func_t func, void *arg ) {
     asm volatile("push {r0,r1,r2,r3}\n");
-    asm volatile("stmia r0!,{r4,r5,r6,r7}\n");       // Save lower regs
+    asm volatile("stmia r0!,{r4,r5,r6,r7}\n");  // Save lower regs
     asm volatile("mov r1,r8\n");
     asm volatile("mov r2,r9\n");
     asm volatile("mov r3,sl\n");
@@ -286,38 +300,41 @@ ThreadState thread_create( volatile stack_frame_t *frame, size_t stack_size, thr
     asm volatile("mov r3,lr\n");
     asm volatile("stmia r0!,{r1,r2,r3}\n");		// Save fp,(placeholder for sp) & lr
     asm volatile("pop {r0,r1,r2,r3}\n");		// Restore regs
-    frame->stack_size = stack_size;		// In r1
-    frame->func_ptr 	= func;			// In r2
-    frame->arg 	= arg;			// In r3
-    frame->r7	= (uint32_t)frame;	// Overwrite r12 with fiber ptr
-    frame->sp = stackroot;			// Save as Fiber's sp
-    frame->lr = (void *) thread_start;	// Fiber startup code
-    frame->state = ThreadCreated;		// Set state of this fiber
-    frame->initial_sp = stackroot;		// Save sp for restart()
-    stackroot    -= stack_size;             // This is the new root of the stack
-    int address   = 1 << num_task;          // get thread address
-    frame->address   |= address;                // set thread address
-    thread_mask     = thread_mask | ( 1 << num_task ); // thread swap mask
-    init_mask     = thread_mask;              // num of threads
+    frame->stack_size = stack_size;                     // In r1
+    frame->func_ptr 	= func;                         // In r2
+    frame->arg 	= arg;                                  // In r3
+    frame->r7	= (uint32_t)frame;                      // Overwrite r12 with fiber ptr
+    frame->sp = stackroot;                              // Save as Fiber's sp
+    frame->lr = (void *) thread_start;                  // Fiber startup code
+    frame->state = ThreadCreated;                       // Set state of this fiber
+    frame->initial_sp = stackroot;                      // Save sp for restart()
+    stackroot    -= stack_size;                         // This is the new root of the stack
+    int address   = 1 << num_task;                      // get thread address
+    frame->address   |= address;                        // set thread address
+    thread_mask     = thread_mask | ( 1 << num_task );  // thread swap mask
+    init_mask     = thread_mask;                        // num of threads
     return ThreadCreated;
 }
 #elif defined(KINETISK)
-ThreadState thread_create( thread_func_t func, size_t stack_size, void *arg ) {
+ThreadState thread_create( thread_func_t func, size_t stack_size, void *arg, bool isTrack  ) {
     volatile stack_frame_t *p = &process_tasks[num_task]; // Thread struct
     asm volatile( "STMEA %0,{r1-r11}\n" : "+r" ( p ) :: "memory" );// Save r1-r11 to thread struct
-    p->stack_size = stack_size;     // Save thread size
-    p->func_ptr   = func;           // Save thread function
-    p->arg        = arg;            // Save thread arg
-    p->r12        = ( uint32_t )p;  // r12 points to struct
+    p->stack_size = stack_size;             // Save thread size
+    p->func_ptr   = func;                   // Save thread function
+    p->arg        = arg;                    // Save thread arg
+    p->r12        = ( uint32_t )p;          // r12 points to struct
     p->sp         = stackroot;              // Save as threads's sp
     p->state      = ThreadCreated;		    // Set state of this thread
     p->initial_sp = stackroot;		        // Save sp for restart()
-    p->lr         = ( void * ) thread_start;	// Thread startup code
+    p->lr         = ( void * )thread_start;	// Thread startup code
     stackroot    -= stack_size;             // This is the new root of the stack
     int address   = 1 << num_task;          // get thread address
     p->address   |= address;                // set thread address
-    thread_mask     = thread_mask | ( 1 << num_task ); // thread swap mask
-    init_mask     = thread_mask;              // num of threads
+    p->frame_type = isTrack;
+    if ( isTrack == false ) {
+        thread_mask   = thread_mask | ( 1 << num_task ); // thread swap mask
+    }
+    init_mask     = thread_mask;              // num of threads;
     return ThreadCreated;
 }
 #endif
@@ -365,9 +382,8 @@ void thread_swap( volatile stack_frame_t *prevframe, volatile stack_frame_t *nex
 // all invocations of yield in teensyduino api go through this now.
 //////////////////////////////////////////////////////////////////////
 void yield( void ) {
-    //digitalWriteFast(16, HIGH);
     // There is only the main context running
-    if ( num_task == 0 ) return;
+    if ( num_task <= 0 ) return;
 #ifdef USE_INTERRUPTS
     __disable_irq( );
 #endif
@@ -376,6 +392,7 @@ void yield( void ) {
     mask &= ( mask - 1 );
     uint32_t head = __builtin_ctz( mask );
     if( head > num_task ) head = 0;
+   // __enable_irq( );
     // previous thread to be stored
     volatile stack_frame_t *last = &process_tasks[tail];
     // next thread to be loaded
@@ -389,6 +406,7 @@ void yield( void ) {
     enum ThreadState n = ( nxt != ThreadReturned ) ? ThreadExecuting : ThreadReturned;
     next->state = ( nxt == ThreadPause ) ? ThreadPause : n;
     // update next thread
+    //__disable_irq( );
     const uint32_t init = init_mask;
     thread_mask = mask == 0 ? init : mask;
     // make the swap
@@ -396,7 +414,6 @@ void yield( void ) {
 #ifdef USE_INTERRUPTS
     __enable_irq( );
 #endif
-    //digitalWriteFast(16, LOW);
 }
 //////////////////////////////////////////////////////////////////////
 // pass thread state, pass loop state
@@ -434,12 +451,55 @@ ThreadState thread_sync( thread_func_t func ) {
 // ** calls low priority software isr to update **
 //////////////////////////////////////////////////////////////////////
 ThreadState thread_restart( thread_func_t func ) {
-    FUNCTION = func;
-    CALLING_FUNCTION = RESTART;
-    update_in_progress = true;
-    NVIC_SET_PENDING( IRQ_RTC_SECOND );
-    while( update_in_progress ) ;
-    return _STATE;
+    thread_func_t thfunc = func;
+    uint32_t num;
+    int i = 0;
+    volatile stack_frame_t *p;
+    do {
+        if ( i > num_task ) return ThreadInvalid;
+        p = &process_tasks[i++];
+    } while ( thfunc != p->func_ptr  );
+    
+    num = init_mask;
+    num |= ( p->address );
+    init_mask = num;
+    p->state = ThreadCreated;
+#if defined(KINETISK)
+    p->r12 = ( uint32_t )p;
+#elif defined(KINETISL)
+    p->r7 = ( uint32_t )p;
+#endif
+    p->sp = p->initial_sp;
+    p->lr = ( void * )thread_start;
+    return ThreadCreated;
+}
+//////////////////////////////////////////////////////////////////////
+// start up returned thread
+//////////////////////////////////////////////////////////////////////
+ThreadState thread_restart_all( void ) {
+    volatile stack_frame_t *p;
+    uint8_t i = 1;
+    uint32_t num;
+    num = init_mask;
+    do {
+        p = &process_tasks[i++];
+        if ( p->state == ThreadPause ) continue;
+        uint8_t type = p->frame_type;
+        if ( type == 1 ) {
+            num |= ( p->address );
+            p->state = ThreadCreated;
+#if defined(KINETISK)
+            p->r12 = ( uint32_t )p;
+#elif defined(KINETISL)
+            p->r7 = ( uint32_t )p;
+#endif
+            p->sp = p->initial_sp;
+            p->lr = ( void * )thread_start;
+        }
+        //i++;
+    } while ( i <= num_task );
+    init_mask = num;
+    return ThreadCreated;
 }
 //////////////////////////////////////////////////////////////////////
 // return a thread - puts in a returned state
@@ -450,7 +510,7 @@ ThreadState thread_return( thread_func_t func ) {
     CALLING_FUNCTION = RETURN;
     update_in_progress = true;
     NVIC_SET_PENDING( IRQ_RTC_SECOND );
-    while( update_in_progress ) ;
+    while( update_in_progress );
     return _STATE;
 }
 //////////////////////////////////////////////////////////////////////
@@ -556,6 +616,7 @@ void rtc_seconds_isr(void) {
             num = init_mask;
             num |= ( p->address );
             init_mask = num;
+            //thread_mask = init_mask;
             p->state = ThreadCreated;
 #if defined(KINETISK)
             p->r12 = ( uint32_t )p;
@@ -580,6 +641,9 @@ void rtc_seconds_isr(void) {
             init_mask = num;
             _STATE = ThreadReturned;
             update_in_progress = false;
+            break;
+        case RESTART_ALL:
+
             break;
         case TASK_STATE:
             p = &process_tasks[i-1];
