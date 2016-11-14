@@ -1,4 +1,4 @@
-# TeensyTracks v1.0.0
+# TeensyTracks v1.1.0
 
 <h4>TeensyTracks is a multi track library inspired by Apple's Garage Band.</h4>
 

@@ -1,3 +1,7 @@
+><b>Updated (11/14/16 v1.1.0)</b><br>
+* Fixed track delay millis, and updated examples.<br>
+* removed not used code.<br>
+
 ><b>Updated (10/8/16 v1.0.0)</b><br>
 * Got rid of Master Thread, now the Track control is handled in the Interval Timer isr.<br>
 * Now has less cpu usage, tracks go dormat once they return which free's' cpu.<br>

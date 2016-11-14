@@ -1,22 +1,22 @@
 /*
- * This example plays the Song Imagine by John Lennon using
- * the Audio library's AudioSynthKarplusStrong for the guitar
- * and WAV drum samples using the prop shield using the DAC 
- * and the USB AUDIO if it is complied using USB->Audio. This 
- * means you can listen to it through your computer, nice!
- *
- * It expands on the "Guitar" and "SamplePlayer" examples
- * from the Audio library examples. TeensyTracks keeps
- * everything in time so you can play songs from a collection
- * of instruments you choose. Since each of the Track threads
- * inherit from the MasterTrack class you can do things like
- * pause, restart or speed or slow down the song. You can also
- * pause and resume individual tracks. This example shows you
- * how to do that. Look at the loop function for this.
- *
- * Since this library uses a scheduling library for the Track
- * Threads do not use any dynamic memory operations. Things like
- * String, prinf and such should not be used sorry.
+ This example plays the Song Imagine by John Lennon using
+ the Audio library's AudioSynthKarplusStrong for the guitar
+ and WAV drum samples using the prop shield using the DAC
+ and the USB AUDIO if it is complied using USB->Audio. This
+ means you can listen to it through your computer, nice!
+ 
+ It expands on the "Guitar" and "SamplePlayer" examples
+ from the Audio library examples. TeensyTracks keeps
+ everything in time so you can play songs from a collection
+ of instruments you choose. Since each of the Track threads
+ inherit from the MasterTrack class you can do things like
+ pause, restart or speed up or slow down the song. You can
+ also pause and resume individual tracks. This example shows
+ you how to do that. Look at the loop function for this.
+ 
+ Since this library uses a scheduling library for the Track
+ Threads do not use any dynamic memory operations. Things like
+ String, prinf and such should not be used sorry.
  */
 #include <TeensyTracks.h>
 #include <Audio.h>
@@ -49,15 +49,15 @@ uint8_t myTempo = 85;
 // provides the basis for starting each Track Thread.
 MasterTrack Imagine(myTempo, C, NUM_MEASURES, 4, 4);
 
-// Track Threads first argument is one of the static void function defined above, then the Track is 
+// Track Threads first argument is one of the static void function defined above, then the Track is
 // either called every beat or every bar and finally is the amount of stack space it needs. If you
-// run into problems with the Tracks not playing weird things happening it could be the stack space 
+// run into problems with the Tracks not playing weird things happening it could be the stack space
 // needs to increase. Track Threads can either be called every beat or every bar.
-Track Drum1(hihat,   ON_BEAT, 1000);
-Track Drum2(kick,    ON_BEAT, 1000);
-Track Drum3(snare,   ON_BEAT, 1000);
-Track Guitar(guitar, ON_BAR,  1000);
-Track SoloGuitar(soloGuitar, ON_BAR, 1000);
+Track DrumHiHat(hihat,       ON_BEAT, 1000);
+Track DrumKick(kick,         ON_BEAT, 1000);
+Track DrumSnare(snare,       ON_BEAT, 1000);
+Track Guitar(guitar,         ON_BAR,  1000);
+Track SoloGuitar(soloGuitar, ON_BAR,  1000);
 
 // Prop Shield and Mic enables
 #define PROP_AMP_ENABLE    5
@@ -153,9 +153,9 @@ void setup() {
 }
 
 /*
- * Loop is considered a Thread too but use it for your non Thread music code. 
- * Make sure you call "yield();" in any for or while loops so to not starve the 
- * the Threads of cpu time. 
+ Loop is considered a Thread too but use it for your non Thread music code.
+ Make sure you call "yield();" in any for or while loops so to not starve the
+ the Threads of cpu time.
  */
 void loop() {
     if (usageTimer >= 5000) {
@@ -178,15 +178,15 @@ void loop() {
     if (c >= 0) {
         if (c == '1') {
             Serial.println("Pausing Hihat Drum");
-            Drum1.pause();
+            DrumHiHat.pause();
         }
         else if (c == '2') {
             Serial.println("Pausing Kick Drum");
-            Drum2.pause();
+            DrumKick.pause();
         }
         else if (c == '3') {
             Serial.println("Pausing Snare Drum");
-            Drum3.pause();
+            DrumSnare.pause();
         }
         else if (c == '4') {
             Serial.println("Pausing Rhythm Guitar");
@@ -206,15 +206,15 @@ void loop() {
         }
         else if (c == 'A') {
             Serial.println("Resuming Hihat Drum");
-            Drum1.resume();
+            DrumHiHat.resume();
         }
         else if (c == 'B') {
             Serial.println("Resuming Kick Drum");
-            Drum2.resume();
+            DrumKick.resume();
         }
         else if (c == 'C') {
             Serial.println("Resuming Snare Drum");
-            Drum3.resume();
+            DrumSnare.resume();
         }
         else if (c == 'D') {
             Serial.println("Resuming Rhythm Guitar");

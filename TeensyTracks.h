@@ -45,7 +45,6 @@ class MasterTrack;
 #define ON_BAR      2
 #define FREE_RUN    3
 
-//#define MASTER_TRACK MasterTrack &p
 #define MASTER_TRACK Track &p
 /**
  *  This is the delays that keep playing instruments or whatever in time with each other.
@@ -184,14 +183,14 @@ public:
     }
     
     /**
-     *  <#Description#>
+     *  Rewind all Tracks // Not implemented yet
      *
-     *  @param bars <#beats description#>
+     *  @param bars - Number of bars to rewind
      *
-     *  @return <#return value description#>
+     *  @return bar
      */
     int16_t rewind( uint16_t bars = 0 ) {
-        
+        return currentBar;
         /*uint16_t cbeat;
         int16_t cbar;
         __disable_irq( );
@@ -232,13 +231,14 @@ public:
     }
     
     /**
-     *  <#Description#>
+     *  Fastforward all Tracks // Not implemented yet
      *
-     *  @param bars <#beats description#>
+     *  @param bars - Number of bars to fastfoward
      *
-     *  @return <#return value description#>
+     *  @return new bar
      */
     int16_t fastForward( uint16_t bars = 0 ) {
+        return currentBar;
         /*uint16_t cbeat;
         int16_t cbar;
         __disable_irq( );
@@ -285,14 +285,12 @@ public:
      */
     uint8_t trackDelayStart( void ) {
         innerBeatTime = 0;
-        //innerBeatTime = 0;
-        if ( currentBeat == 1 ) {
+        /*if ( currentBeat == 1 ) {
             //Serial.println(barMicros);
             //innerBeatTime = barMicros;
         } else {
             //innerBeatTime = 0;
-        }
-        
+        }*/
         return 1;
     }
     
@@ -306,8 +304,6 @@ public:
      *  @return false for the Macro
      */
     uint8_t trackDelayEnd( unsigned long duration ) {
-        elapsedMicros time = innerBeatTime;
-        //
         unsigned long delayLength;
         switch ( duration ) {
             case WHOLE_BAR:
@@ -338,7 +334,7 @@ public:
                 return 0;
                 break;
         }
-        while ( time < delayLength ) yield( );
+        while ( innerBeatTime < delayLength ) yield( );
         return 0;
     }
     
@@ -353,6 +349,7 @@ protected:
         }
         next_track = NULL;
     }
+    
     uint8_t threadRunType;
     /**
      *  This sets up the Track Threads, the main thread is the loop function.
@@ -367,12 +364,10 @@ private:
     MasterTrack             *next_track;
     static MasterTrack      *first_track;
     
-    
-    
     elapsedMicros            innerBeatTime;
     
-    static elapsedMicros     beatMicros;
-    static elapsedMicros     barMicros;
+    //static elapsedMicros     beatMicros;
+    //static elapsedMicros     barMicros;
     
     static IntervalTimer MasterTimer;
     
@@ -415,7 +410,6 @@ private:
      *  Restarts the Track thread from the beginning.
      */
     void restart( void ) {
-        
         masterTrackThreadClass.restart( trackThread );
     }
     /**

@@ -124,16 +124,16 @@ static void guitarThread(void *arg) {
             // takes to execute. The remainder is delayed for whatever part of
             // bar is chosen to delay. There are 7 delays 1, 1/2, 1/4, 1/8,
             // 1/16 and 1/32 of a bar. These correspond to the duration of a
-            // note you see in sheet music. Track_Delays "yield();" too.
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            // note you see in sheet music. Track_Delays "yield" also.
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_D4, .6);
                 Serial.print("Bar 1 -> D4  ");
             }
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_E4, .6);
                 Serial.print("E4  ");
             }
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_D4, .6);
                 Serial.print("D4  ");
             }
@@ -142,12 +142,12 @@ static void guitarThread(void *arg) {
             
             break;
         case 2:
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_B3, .6);
                 Serial.print("Bar 2 -> B3  ");
                 
             }
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_C4, .6);
                 Serial.print("C4  ");
             }
@@ -156,11 +156,11 @@ static void guitarThread(void *arg) {
             
             break;
         case 3:
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_A3, .6);
                 Serial.print("Bar 3 -> A2  ");
             }
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_B3, .6);
                 Serial.print("B3  ");
             }
@@ -168,11 +168,11 @@ static void guitarThread(void *arg) {
             Serial.println("C4");
             break;
         case 4:
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_B3, .6);
                 Serial.print("Bar 4 -> B3  ");
             }
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_C4, .6);
                 Serial.print("C4  ");
             }
@@ -180,15 +180,15 @@ static void guitarThread(void *arg) {
             Serial.println("D4");
             break;
         case 5:
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_D4, .6);
                 Serial.print("Bar 5 -> D4  ");
             }
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_E4, .6);
                 Serial.print("E4  ");
             }
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_D4, .6);
                 Serial.print("D4  ");
             }
@@ -196,11 +196,11 @@ static void guitarThread(void *arg) {
             Serial.println("C4");
             break;
         case 6:
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_B3, .6);
                 Serial.print("Bar 6 -> B3  ");
             }
-            TRACK_DELAY(LondonBridges, QUARTER_BAR) {
+            TRACK_DELAY(guitarTrack, QUARTER_BAR) {
                 audioGuitar.noteOn(NOTE_C4, .6);
                 Serial.print("C4  ");
             }
@@ -208,7 +208,7 @@ static void guitarThread(void *arg) {
             Serial.println("D4");
             break;
         case 7:
-            TRACK_DELAY(LondonBridges, HALF_BAR) {
+            TRACK_DELAY(guitarTrack, HALF_BAR) {
                 audioGuitar.noteOn(NOTE_A3, .6);
                 Serial.print("Bar 7 -> A3      ");
             }
@@ -216,7 +216,7 @@ static void guitarThread(void *arg) {
             Serial.println("G3");
             break;
         case 8:
-            TRACK_DELAY(LondonBridges, HALF_BAR) {
+            TRACK_DELAY(guitarTrack, HALF_BAR) {
                 audioGuitar.noteOn(NOTE_G3, .6);
                 Serial.println("Bar 8 -> G3");
             }

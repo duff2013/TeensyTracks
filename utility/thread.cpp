@@ -89,11 +89,11 @@ static volatile uint32_t stackroot = 0;
 // Alternate fill pattern, NOT USED!!!
 static uint32_t psp_fill_pattern = 0;
 // Mask for thread swap
-static volatile uint32_t thread_mask    = 0;
+static volatile uint32_t thread_mask = 0;
 // Restore thread_mask when fifo is empty
-static volatile uint32_t init_mask     = 0;
+static volatile uint32_t init_mask = 0;
 // Used for low level ISR that gets called for handler functions.
-static volatile boolean update_in_progress  = false;
+static volatile boolean update_in_progress = false;
 // Hold thread struct for context switch
 static volatile stack_frame_t process_tasks[MAX_TASKS];
 volatile uint8_t num_task = 0;

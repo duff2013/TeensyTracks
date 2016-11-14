@@ -46,23 +46,23 @@ unsigned long MasterTrack::quarterTripletBarMulitplier;
 unsigned long MasterTrack::eighthTripletBarMulitplier;
 volatile bool MasterTrack::isBeat;
 volatile bool MasterTrack::isBar;
-elapsedMicros MasterTrack::beatMicros;
-elapsedMicros MasterTrack::barMicros;
+//elapsedMicros MasterTrack::beatMicros;
+//elapsedMicros MasterTrack::barMicros;
 
 /**
  *  Track timing control provided by the IntervalTimer.
  */
 void MasterTrack::BeatTrack( void ) {
-    beatMicros = 0;
-    count = 1;
+    //beatMicros = 0;
     bool bar = false;
+    bool beat = false;
     
     if ( ++currentBeat >= ( timeSignatureHigh + 1 ) ) {
         if ( ++currentBar >= ( measures + 1 ) ) currentBar = 1;
-        barMicros = beatMicros;
         bar = true;
         currentBeat = 1;
         masterTrackThreadClass.restart_all( );
+        //barMicros = beatMicros;
     }
     
     if ( currentBar == 0 ) return;
@@ -79,39 +79,13 @@ void MasterTrack::BeatTrack( void ) {
 }
 
 /**
- *  <#Description#>
- *
- *  @param arg <#arg description#>
- */
-void MasterTrack::masterThread( void *arg ) {
-    /*while ( 1 ) {
-        if ( isBar ) {
-            masterTrackThreadClass.restart_all( );
-            isBar = false;
-            isBeat = false;
-        }
-        else if ( isBeat ) {
-            isBeat = false;
-           MasterTrack *p;
-            for ( p = MasterTrack::first_track; p; p = p->next_track ) {
-                uint8_t thRunType = p->threadRunType;
-                if ( thRunType == ON_BEAT ) {
-                    p->restart( );
-                }
-            }
-        }
-        yield( );
-    }*/
-}
-
-/**
- *  <#Description#>
+ *  Start off everything
  */
 void MasterTrack::begin( void ) {
-    //masterTrackThreadClass.create( masterThread, 300, 0, 0 );
     innerBeatTime = 0;
     MasterTrack *p;
     for ( p = MasterTrack::first_track; p; p = p->next_track ) p->begin( );
-    delayMicroseconds(100);
+    delayMicroseconds( 100 );
+    MasterTimer.priority( 192 );
     MasterTimer.begin( BeatTrack, beatTime );
 }

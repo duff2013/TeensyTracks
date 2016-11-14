@@ -55,25 +55,25 @@
 // according to http://www.guitar-chords.org.uk/
 // and http://www.8notes.com/guitar_chord_chart/c.asp
 //
-              // open   =  NOTE_E2  NOTE_A2  NOTE_D3  NOTE_G3  NOTE_B3  NOTE_E4
+// open   =  NOTE_E2  NOTE_A2  NOTE_D3  NOTE_G3  NOTE_B3  NOTE_E4
 const float Cmajor[6]   = {      0, NOTE_C3, NOTE_E3, NOTE_G3, NOTE_C4, NOTE_E4};  // C - E - G
 const float Dmajor[6]   = {      0,       0, NOTE_D3, NOTE_A3, NOTE_D4, NOTE_Fs4}; // D - F# - A
-const float Emajor[6]   = {NOTE_E2, NOTE_B2, NOTE_E3, NOTE_Gs3,NOTE_B3, NOTE_E4};  // E - G# - B
+const float Emajor[6]   = {NOTE_E2, NOTE_B2, NOTE_E3, NOTE_Gs3, NOTE_B3, NOTE_E4}; // E - G# - B
 const float Fmajor[6]   = {      0, NOTE_A2, NOTE_F3, NOTE_A3, NOTE_C4, NOTE_F4};  // F - A - C
 const float Gmajor[6]   = {NOTE_G2, NOTE_B2, NOTE_D3, NOTE_G3, NOTE_B3, NOTE_E4};  // G - B - D
-const float Amajor[6]   = {      0, NOTE_A2, NOTE_E3, NOTE_A3, NOTE_Cs4,NOTE_E4};  // A - C# - E
-const float Bmajor[6]   = {      0, NOTE_B2, NOTE_Fs3,NOTE_B3, NOTE_Ds4,NOTE_Fs4}; // B - D# - F#
-const float Cminor[6]   = {      0, NOTE_C3, NOTE_G3, NOTE_C4, NOTE_Ds4,NOTE_G4};  // C - D# - G
+const float Amajor[6]   = {      0, NOTE_A2, NOTE_E3, NOTE_A3, NOTE_Cs4, NOTE_E4}; // A - C# - E
+const float Bmajor[6]   = {      0, NOTE_B2, NOTE_Fs3, NOTE_B3, NOTE_Ds4, NOTE_Fs4}; // B - D# - F#
+const float Cminor[6]   = {      0, NOTE_C3, NOTE_G3, NOTE_C4, NOTE_Ds4, NOTE_G4}; // C - D# - G
 const float Dminor[6]   = {      0,       0, NOTE_D3, NOTE_A3, NOTE_D4, NOTE_F4};  // D - F - A
 const float Eminor[6]   = {NOTE_E2, NOTE_B2, NOTE_E3, NOTE_G3, NOTE_B3, NOTE_E4};  // E - G - B
-const float Fminor[6]   = {NOTE_F2, NOTE_C3, NOTE_F3, NOTE_Gs3,NOTE_C4, NOTE_F4};  // F - G# - C
-const float Gminor[6]   = {NOTE_G2, NOTE_D3, NOTE_G3, NOTE_As3,NOTE_D3, NOTE_G4};  // G - A# - D
+const float Fminor[6]   = {NOTE_F2, NOTE_C3, NOTE_F3, NOTE_Gs3, NOTE_C4, NOTE_F4}; // F - G# - C
+const float Gminor[6]   = {NOTE_G2, NOTE_D3, NOTE_G3, NOTE_As3, NOTE_D3, NOTE_G4}; // G - A# - D
 const float Aminor[6]   = {      0, NOTE_A2, NOTE_E3, NOTE_A3, NOTE_C4, NOTE_E4};  // A - C - E
-const float Bminor[6]   = {      0, NOTE_B2, NOTE_Fs3,NOTE_B3, NOTE_D4, NOTE_Fs4}; // B - D - F#
+const float Bminor[6]   = {      0, NOTE_B2, NOTE_Fs3, NOTE_B3, NOTE_D4, NOTE_Fs4}; // B - D - F#
 
 const float Cmajor7[6]  = {      0, NOTE_C3, NOTE_E2, NOTE_G3, NOTE_Bb3, NOTE_E4};  // C - E - G - B♭
 const float Fmajor7[6]  = {      0, NOTE_C3, NOTE_F3, NOTE_A3, NOTE_C4,  NOTE_E4};  // C - F - A - E
 
-const float A_7[6]      = {      0, NOTE_A2, NOTE_E3, NOTE_G3, NOTE_Cs4,NOTE_E4};  // A - E - G - C#
+const float A_7[6]      = {      0, NOTE_A2, NOTE_E3, NOTE_G3, NOTE_Cs4, NOTE_E4}; // A - E - G - C#
 const float D_7[6]      = {      0,       0, NOTE_D3, NOTE_A3, NOTE_C4, NOTE_Fs4}; // D - A - C - F#
-const float E_7[6]      = {NOTE_E2, NOTE_B2, NOTE_E3, NOTE_Gs3,NOTE_D4, NOTE_E4};  // E - B - G# - D
+const float E_7[6]      = {NOTE_E2, NOTE_B2, NOTE_E3, NOTE_Gs3, NOTE_D4, NOTE_E4}; // E - B - G# - D
